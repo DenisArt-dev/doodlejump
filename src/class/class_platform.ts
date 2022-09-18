@@ -1,5 +1,6 @@
-import { PlatformType, Direction } from "../interface";
-import { gameData } from "../data/data";
+import { PlatformType, Direction } from '../interface';
+import { gameData } from '../data/data';
+import Life from './class_life';
 
 export default class Platform {
 
@@ -8,6 +9,7 @@ export default class Platform {
     public width: number = this.getRandomMinMax(gameData.platformMinW, gameData.platformMaxW);
     public type: PlatformType = (this.getRandomMinMax(1, 10) < 7) ? 'standart' : 'unsteady';
     public duration: Direction = (this.getRandomMinMax(1, 2) === 2) ? 'left' : 'right';
+    public isLife: any = null;
     public marginLeft: number = 0;
     public marginMax: number = 0;
     public positionY: number = 0;
@@ -24,6 +26,8 @@ export default class Platform {
         this.step = step;
         this.marginMax = gameData.fildWith - this.width;
         this.positionY = ((gameData.platform.margin + gameData.platform.height) * this.step) + gameData.platform.height;
+
+        if (this.step !== 0) this.isLife = (this.getRandomMinMax(1, 100) < 90) ? null : new Life(this.width);
 
     }
 

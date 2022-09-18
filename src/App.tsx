@@ -200,6 +200,15 @@ function App() {
     gameOver();
   }
 
+  if (doodle.platform && gameFild.platforms[doodle.platform].isLife !== null &&
+      doodle.positionX + gameData.doodleSize.with > gameFild.platforms[doodle.platform].isLife.positionX + gameFild.platforms[doodle.platform].marginLeft &&
+      doodle.positionX < gameFild.platforms[doodle.platform].isLife.positionX + gameFild.platforms[doodle.platform].marginLeft + 30 &&
+      gameFild.platforms[doodle.platform].isLife.isVisible
+    ) {
+      gameFild.platforms[doodle.platform].isLife.isVisible = false;
+      doodle.life++;
+    }
+
   return (
 
     <div className='container' style={ {maxWidth: gameData.fildWith, height: gameData.fildHeight} }>
