@@ -8,6 +8,7 @@ import GameFild from './class/class_gameFild';
 const doodle = new Doodle();
 const gameFild = new GameFild();
 let isGameOver = false;
+let record = (!localStorage.getItem('record')) ? 0 : localStorage.getItem('record');
 
 document.onkeydown = (event) => {
   if (event.key === 'ArrowUp') doodle.jump();
@@ -56,9 +57,16 @@ function gameOver() {
           gameFild.nextStep( new Platform(gameFild.platforms[gameFild.platforms.length - 1].step + 1) );
         }
 
+        console.log(gameFild.platforms); 
+
         doodle.positionOnPlatform = gameFild.platforms[doodle.lastPlatform].width / 2 - gameData.doodleSize.with / 2;
         doodle.positionX = gameFild.platforms[doodle.lastPlatform].marginLeft + doodle.positionOnPlatform;
         doodle.positionY = gameFild.platforms[doodle.lastPlatform].positionY;
+
+        if (doodle.positionY <= 0) {
+          
+        }
+
         doodle.platform = doodle.lastPlatform;
 
       }
@@ -137,6 +145,11 @@ function App() {
               gameFild.marginTop += -(gameData.platform.margin + gameData.platform.height);
               gameFild.isAnimation = true;
               setStatistic(statistic + 1);
+
+              if (record && doodle.platform > record) {
+                localStorage.setItem('record', doodle.platform + '');
+                record = doodle.platform;
+              }
 
           } else if (doodle.positionY < gameFild.platforms[doodle.platform].positionY) {
             doodle.isJupm.down = false;
@@ -221,7 +234,11 @@ function App() {
               } )}
               </div>
             }</div>
-          <p>Statistic: {statistic}</p>
+            <div>
+              <p>Statistic: {statistic}</p>
+              <p>Best result: {record}</p>
+            </div>
+
         </div>
         <div className={ isGameOver ? 'gameOver' : 'gameRun' } id='game' style={ {maxWidth: gameData.fildWith, height: gameData.fildHeight} }>
 
