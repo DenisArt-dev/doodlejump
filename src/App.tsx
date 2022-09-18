@@ -1,14 +1,15 @@
-import React, {useState, useEffect} from 'react';
+import React, { useEffect } from 'react';
 import CompPlatform from './components/comp_platform';
 import Platform from './class/class_platform';
-import { gameData } from './data/data';
 import Doodle from './class/class_doodle';
 import GameFild from './class/class_gameFild';
 
 const doodle = new Doodle();
 const gameFild = new GameFild();
+
 let isGameOver = false;
 let record = (!localStorage.getItem('record')) ? 0 : localStorage.getItem('record');
+let statistic = 0;
 
 document.onkeydown = (event) => {
   if (event.key === 'ArrowUp') doodle.jump();
@@ -25,7 +26,7 @@ window.onresize = resizeHandl;
 
 function resizeHandl() {
 
-  if (window.innerWidth < gameData.fildWith + 30) gameData.fildWith = window.innerWidth - 30;
+  if (window.innerWidth < gameFild.width + 30) gameFild.width = window.innerWidth - 30;
 
   doodle.resize();
 
@@ -57,15 +58,9 @@ function gameOver() {
           gameFild.nextStep( new Platform(gameFild.platforms[gameFild.platforms.length - 1].step + 1) );
         }
 
-        console.log(gameFild.platforms); 
-
-        doodle.positionOnPlatform = gameFild.platforms[doodle.lastPlatform].width / 2 - gameData.doodleSize.with / 2;
+        doodle.positionOnPlatform = gameFild.platforms[doodle.lastPlatform].width / 2 - doodle.with / 2;
         doodle.positionX = gameFild.platforms[doodle.lastPlatform].marginLeft + doodle.positionOnPlatform;
         doodle.positionY = gameFild.platforms[doodle.lastPlatform].positionY;
-
-        if (doodle.positionY <= 0) {
-          
-        }
 
         doodle.platform = doodle.lastPlatform;
 
@@ -80,7 +75,130 @@ function gameOver() {
 
 }
 
-function buttonsHandl(event: any) {
+function isDoodleOnPlatform(): any {
+
+  if (doodle.platform === null) return;
+
+  let rightSidePlatform = gameFild.platforms[doodle.platform + 1].marginLeft + gameFild.platforms[doodle.platform + 1].width;
+
+  if (doodle.positionY < gameFild.platforms[doodle.platform + 1].positionY &&
+      doodle.positionY > gameFild.platforms[doodle.platform + 1].positionY - doodle.animationSpead * 2 &&
+      doodle.positionX + doodle.with / 2 > gameFild.platforms[doodle.platform + 1].marginLeft && 
+      doodle.positionX - doodle.with / 2 < rightSidePlatform
+     ) return true;
+  else return false;
+
+}
+
+function doodleGoUp(): void {
+
+  if (doodle.platform === null) return;
+
+  doodle.platform = gameFild.platforms[doodle.platform + 1].step;
+  doodle.positionOnPlatform = doodle.positionX - gameFild.platforms[doodle.platform].marginLeft;
+  doodle.isJupm.down = false;
+  gameFild.nextStep( new Platform(gameFild.platforms[gameFild.platforms.length - 1].step + 1) );
+  gameFild.newMarginTop = gameFild.marginTop;
+  gameFild.marginTop += -(Platform.staticMarginTop + Platform.staticHeight);
+  gameFild.isAnimation = true;
+  statistic++;
+
+  if (record && doodle.platform > record) {
+    localStorage.setItem('record', doodle.platform + '');
+    record = doodle.platform;
+  }
+
+}
+
+function doodleJump(): void {
+
+  if (doodle.platform === null) return;
+
+  if (gameFild.platforms[doodle.platform].type !== 'static') {
+
+    if (gameFild.platforms[doodle.platform].duration === 'left') doodle.positionOnPlatform += gameFild.platforms[doodle.platform].spead;
+    else doodle.positionOnPlatform -= gameFild.platforms[doodle.platform].spead;
+
+  }
+
+  if (doodle.isJupm.up) {
+
+    doodle.positionY += doodle.animationSpead;
+
+    if (doodle.positionY + gameFild.marginTop > gameFild.marginTop + doodle.positionDown + doodle.heightJump) {
+      doodle.positionY = gameFild.marginTop + doodle.positionDown + doodle.heightJump;
+      doodle.isJupm.up = false;
+      doodle.isJupm.down = true;
+    }
+    
+  }
+
+  if (doodle.isJupm.down) {
+
+    doodle.positionY -= doodle.animationSpead;
+
+    if ( isDoodleOnPlatform() ) {
+
+      doodleGoUp();
+
+    } else if (doodle.positionY < gameFild.platforms[doodle.platform].positionY) {
+      doodle.isJupm.down = false;
+    }
+
+  }
+
+}
+
+function doodleMove(): void {
+
+  if (doodle.isMove.left) {
+
+    if (doodle.direction !== 'left') doodle.direction = 'left';
+
+    doodle.positionX -= doodle.animationSpead;
+    doodle.positionOnPlatform -= doodle.animationSpead;
+
+    if (doodle.positionX < 0) {
+      doodle.positionX = 0;
+      doodle.positionOnPlatform = 0;
+    }
+
+  }
+
+  if (doodle.isMove.right) {
+
+    if (doodle.direction !== 'right') doodle.direction = 'right';
+
+    doodle.positionX += doodle.animationSpead;
+    doodle.positionOnPlatform += doodle.animationSpead;
+    
+    if (doodle.positionX > gameFild.width - doodle.with) {
+      doodle.positionX = gameFild.width - doodle.with;
+      doodle.positionOnPlatform = gameFild.width - doodle.with;
+    }
+
+  }
+
+}
+
+function isTakeLife(): any {
+
+  if (doodle.platform === null) return;
+
+  let life = gameFild.platforms[doodle.platform].isLife;
+  let lifeLeftSide = life.positionX + gameFild.platforms[doodle.platform].marginLeft;
+  let lifeRightSide = life.positionX + gameFild.platforms[doodle.platform].marginLeft + life.width;
+
+  if (
+    doodle.positionX + doodle.with > lifeLeftSide &&
+    doodle.positionX < lifeRightSide &&
+    gameFild.platforms[doodle.platform].isLife.isVisible
+  ) return true;
+  else return false;
+
+}
+
+function buttonsHandl(event: any): void {
 
   event.preventDefault();
 
@@ -110,121 +228,58 @@ function App() {
     resizeHandl();
   }, [] );
 
-  const [statistic, setStatistic] = useState(0);
+  if (doodle.platform !== null) {
 
-  if (doodle.platform !== null && doodle.isJupm.up || doodle.isJupm.down) {
-
-    if (doodle.platform !== null && gameFild.platforms[doodle.platform].type !== 'static') {
-      if (gameFild.platforms[doodle.platform].duration === 'left') doodle.positionOnPlatform += gameFild.platforms[doodle.platform].spead;
-      else doodle.positionOnPlatform -= gameFild.platforms[doodle.platform].spead;
+    if (doodle.isJupm.up || doodle.isJupm.down) {
+      doodleJump();
     }
 
-    if (doodle.isJupm.up) {
-      doodle.positionY += gameData.animationSpead;
-      if (doodle.positionY + gameFild.marginTop > gameFild.marginTop + doodle.positionDown + gameData.doodleHeightJump) {
-        doodle.positionY = gameFild.marginTop + doodle.positionDown + gameData.doodleHeightJump;
-        doodle.isJupm.up = false;
-        doodle.isJupm.down = true;
-      }
+    if (doodle.isMove.left || doodle.isMove.right) {
+      doodleMove();
     }
-    if (doodle.isJupm.down) {
-      doodle.positionY -= gameData.animationSpead;
-
-        if (doodle.platform !== null) {
-
-          if (doodle.positionY < gameFild.platforms[doodle.platform + 1].positionY &&
-              doodle.positionY > gameFild.platforms[doodle.platform + 1].positionY - gameData.animationSpead * 2 &&
-              doodle.positionX + gameData.doodleSize.with / 2 > gameFild.platforms[doodle.platform + 1].marginLeft && 
-              doodle.positionX - gameData.doodleSize.with / 2 < gameFild.platforms[doodle.platform + 1].marginLeft + gameFild.platforms[doodle.platform + 1].width) {
-
-              doodle.platform = gameFild.platforms[doodle.platform + 1].step;
-              doodle.positionOnPlatform = doodle.positionX - gameFild.platforms[doodle.platform].marginLeft;
-              doodle.isJupm.down = false;
-              gameFild.nextStep( new Platform(gameFild.platforms[gameFild.platforms.length - 1].step + 1) );
-              gameFild.newMarginTop = gameFild.marginTop;
-              gameFild.marginTop += -(gameData.platform.margin + gameData.platform.height);
-              gameFild.isAnimation = true;
-              setStatistic(statistic + 1);
-
-              if (record && doodle.platform > record) {
-                localStorage.setItem('record', doodle.platform + '');
-                record = doodle.platform;
-              }
-
-          } else if (doodle.positionY < gameFild.platforms[doodle.platform].positionY) {
-            doodle.isJupm.down = false;
-          }
-          
-        }
-
-    }
-  }
-
-  if (doodle.platform === null && doodle.positionY > -100) doodle.positionY -= gameData.animationSpead;
   
-  if (doodle.platform !== null && doodle.isMove.left) {
-    if (doodle.direction !== 'left') doodle.direction = 'left';
-    doodle.positionX -= gameData.animationSpead;
-    doodle.positionOnPlatform -= gameData.animationSpead;
-    if (doodle.positionX < 0) {
-      doodle.positionX = 0;
-      doodle.positionOnPlatform = 0;
+    if (
+        gameFild.platforms[doodle.platform].type !== 'static' &&
+        !doodle.isMove.left &&
+        !doodle.isMove.right &&
+        !doodle.isJupm.up &&
+        !doodle.isJupm.down
+    ) doodle.positionX = gameFild.platforms[doodle.platform].marginLeft + doodle.positionOnPlatform;
+  
+    if (gameFild.isAnimation) {
+
+      gameFild.marginTop += doodle.animationSpead;
+
+      if ( gameFild.marginTop >= gameFild.newMarginTop ) {
+        gameFild.marginTop = gameFild.newMarginTop;
+        gameFild.isAnimation = false;
+      }
+
     }
-  }
 
-  if (doodle.platform !== null && doodle.isMove.right) {
-    if (doodle.direction !== 'right') doodle.direction = 'right';
-    doodle.positionX += gameData.animationSpead;
-    doodle.positionOnPlatform += gameData.animationSpead;
-    if (doodle.positionX > gameData.fildWith - gameData.doodleSize.with) {
-      doodle.positionX = gameData.fildWith - gameData.doodleSize.with;
-      doodle.positionOnPlatform = gameData.fildWith - gameData.doodleSize.with;
-    }
-
-  }
-
-  if (doodle.platform !== null && !doodle.isJupm.up && !doodle.isJupm.down) {
-    if (doodle.positionX + gameData.doodleSize.with - 10 < gameFild.platforms[doodle.platform].marginLeft || 
-      doodle.positionX + 10 > gameFild.platforms[doodle.platform].marginLeft + gameFild.platforms[doodle.platform].width) {
-        gameOver();
-    }
-  }
-
-  if (
-      doodle.platform !== null &&
-      gameFild.platforms[doodle.platform].type !== 'static' &&
-      !doodle.isMove.left &&
-      !doodle.isMove.right &&
-      !doodle.isJupm.up &&
-      !doodle.isJupm.down
-    ) {
-      doodle.positionX = gameFild.platforms[doodle.platform].marginLeft + doodle.positionOnPlatform;
-  }
-
-  if (doodle.platform !== null && gameFild.isAnimation) {
-    gameFild.marginTop += gameData.animationSpead;
-    if ( gameFild.marginTop >= gameFild.newMarginTop ) {
-      gameFild.marginTop = gameFild.newMarginTop;
-      gameFild.isAnimation = false;
-    }
-  }
-
-  if (doodle.platform && gameFild.platforms[doodle.platform].opacity <= 0) {
-    gameOver();
-  }
-
-  if (doodle.platform && gameFild.platforms[doodle.platform].isLife !== null &&
-      doodle.positionX + gameData.doodleSize.with > gameFild.platforms[doodle.platform].isLife.positionX + gameFild.platforms[doodle.platform].marginLeft &&
-      doodle.positionX < gameFild.platforms[doodle.platform].isLife.positionX + gameFild.platforms[doodle.platform].marginLeft + 30 &&
-      gameFild.platforms[doodle.platform].isLife.isVisible
-    ) {
+    if ( gameFild.platforms[doodle.platform].isLife !== null && isTakeLife() ) {
       gameFild.platforms[doodle.platform].isLife.isVisible = false;
       doodle.life++;
     }
 
+    if (gameFild.platforms[doodle.platform].opacity <= 0) {
+      gameOver();
+    } else if (!doodle.isJupm.up && !doodle.isJupm.down) {
+
+      if (doodle.positionX + doodle.with - 10 < gameFild.platforms[doodle.platform].marginLeft || 
+        doodle.positionX + 10 > gameFild.platforms[doodle.platform].marginLeft + gameFild.platforms[doodle.platform].width) {
+          gameOver();
+        }
+
+    }
+
+  } else if (doodle.positionY > -100) {
+    doodle.positionY -= doodle.animationSpead;
+  }
+
   return (
 
-    <div className='container' style={ {maxWidth: gameData.fildWith, height: gameData.fildHeight} }>
+    <div className='container' style={ {maxWidth: gameFild.width, height: gameFild.height} }>
       <div className='gameWrapp'>
         <div className="gameHeader">
           <div className='title_life'>
@@ -240,16 +295,16 @@ function App() {
             </div>
 
         </div>
-        <div className={ isGameOver ? 'gameOver' : 'gameRun' } id='game' style={ {maxWidth: gameData.fildWith, height: gameData.fildHeight} }>
+        <div className={ isGameOver ? 'gameOver' : 'gameRun' } id='game' style={ {maxWidth: gameFild.width, height: gameFild.height} }>
 
           <div className='gameContent' style={ {marginTop: gameFild.marginTop + 'px'} }>
             {!isGameOver && <div className={['doodle', 'doodle_' + doodle.direction].join(' ')} style={ {
               left: doodle.positionX + 'px',
               bottom: doodle.positionY + 'px',
-              height: gameData.doodleSize.height,
-              width: gameData.doodleSize.with,
+              height: doodle.height,
+              width: doodle.with,
               } } ></div>}
-            {gameFild.platforms.map( (item) => {return <CompPlatform currentPlatform={doodle.platform} gameWidth={gameData.fildWith} platformParams={item} key={item.step}/>} )}
+            {gameFild.platforms.map( (item) => {return <CompPlatform currentPlatform={doodle.platform} gameWidth={gameFild.width} platformParams={item} key={item.step}/>} )}
           </div>
 
         </div>

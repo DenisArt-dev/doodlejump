@@ -1,17 +1,24 @@
 import { PlatformType, Direction } from '../interface';
-import { gameData } from '../data/data';
+import GameFild from './class_gameFild';
 import Life from './class_life';
 
 export default class Platform {
 
+    public static staticHeight: number = 22;
+    public static staticMarginTop: number = 100;
+    public static staticMinWidht: number = 50;
+    public static staticMaxWidht: number = 200;
+
+    public height: number = Platform.staticHeight;
+    public width: number = this.getRandomMinMax(Platform.staticMinWidht, Platform.staticMaxWidht);
     public step: number = 0;
     public spead: number = this.getRandomMinMax(1, 3);
-    public width: number = this.getRandomMinMax(gameData.platformMinW, gameData.platformMaxW);
     public type: PlatformType = (this.getRandomMinMax(1, 10) < 7) ? 'standart' : 'unsteady';
     public duration: Direction = (this.getRandomMinMax(1, 2) === 2) ? 'left' : 'right';
     public isLife: any = null;
     public marginLeft: number = 0;
-    public marginMax: number = 0;
+    public marginLeftMax: number = 0;
+    public marginTop: number = Platform.staticMarginTop;
     public positionY: number = 0;
     public opacity: number = 1;
 
@@ -21,21 +28,21 @@ export default class Platform {
         if (width) this.width = width;
 
         if (marginLeft) this.marginLeft = marginLeft;
-        else this.marginLeft = this.getRandomMinMax(0, this.marginMax);
+        else this.marginLeft = this.getRandomMinMax(0, this.marginLeftMax);
 
         this.step = step;
-        this.marginMax = gameData.fildWith - this.width;
-        this.positionY = ((gameData.platform.margin + gameData.platform.height) * this.step) + gameData.platform.height;
+        this.marginLeftMax = GameFild.staticWith - this.width;
+        this.positionY = ((this.marginTop + Platform.staticHeight) * this.step) + Platform.staticHeight;
 
         if (this.step !== 0) this.isLife = (this.getRandomMinMax(1, 100) < 90) ? null : new Life(this.width);
 
     }
 
     public resize() {
-        this.marginMax = gameData.fildWith - this.width;
-        if (this.width + 50 >= gameData.fildWith) this.width = gameData.platformMinW;
+        this.marginLeftMax = GameFild.staticWith - this.width;
+        if (this.width + 50 >= GameFild.staticWith) this.width = Platform.staticMinWidht;
         if (this.type === 'static') {
-            this.marginLeft = (gameData.fildWith - this.width) / 2;
+            this.marginLeft = (GameFild.staticWith - this.width) / 2;
         }
     }
 

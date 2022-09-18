@@ -1,11 +1,15 @@
 import { Direction } from '../interface';
-import { gameData } from '../data/data';
+import GameFild from './class_gameFild';
+import Platform from './class_platform';
 
 
 export default class Doodle {
 
-    public positionX: number = (gameData.fildWith - gameData.doodleSize.with) / 2;
-    public positionY: number = gameData.platform.height - 2;
+    public with: number = 70;
+    public height: number = 70;
+    public positionX: number = (GameFild.staticWith - this.with) / 2;
+    public positionY: number = Platform.staticHeight - 2;
+    public animationSpead: number = 4;
     public isMove = {
         left: false,
         right: false
@@ -27,7 +31,7 @@ export default class Doodle {
     }
 
     public resize() {
-        this.positionX = (gameData.fildWith - gameData.doodleSize.with) / 2; 
+        this.positionX = (GameFild.staticWith - this.with) / 2; 
     }
 
     public jump() {
