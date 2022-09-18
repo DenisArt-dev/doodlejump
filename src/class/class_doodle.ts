@@ -26,10 +26,6 @@ export default class Doodle {
     public lastPlatform: number | null = null;
     public life: number = 3;
 
-    public remove() {
-
-    }
-
     public resize() {
         this.positionX = (GameFild.staticWith - this.with) / 2; 
     }
@@ -55,6 +51,5 @@ export default class Doodle {
         }
 
     }
-
 
 }

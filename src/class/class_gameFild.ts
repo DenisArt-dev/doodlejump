@@ -18,11 +18,16 @@ export default class GameFild {
         }
     }
 
-    public remove() {
+    public static getRandomMinMax(min: number, max: number, afterPoint?: number): any {
+        if (!afterPoint) afterPoint = 0;
+        return +(min + Math.random() * (max - min)).toFixed(afterPoint);
+    }
+
+    public remove(): void {
         this.platforms = [];
     }
 
-    public nextStep (newPlatform: any) {
+    public nextStep (newPlatform: any): void {
         this.platforms.push(newPlatform);
     }
 

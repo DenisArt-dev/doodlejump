@@ -4,27 +4,30 @@ import Platform from './class/class_platform';
 import Doodle from './class/class_doodle';
 import GameFild from './class/class_gameFild';
 
-const doodle = new Doodle();
-const gameFild = new GameFild();
+import { IDoodle } from './interface';
+import { IGameFild } from './interface';
 
-let isGameOver = false;
+const doodle: IDoodle = new Doodle();
+const gameFild: IGameFild = new GameFild();
+
+let isGameOver: boolean = false;
 let record = (!localStorage.getItem('record')) ? 0 : localStorage.getItem('record');
-let statistic = 0;
+let statistic: number = 0;
 
-document.onkeydown = (event) => {
+document.onkeydown = (event: KeyboardEvent) => {
   if (event.key === 'ArrowUp') doodle.jump();
   if (event.key === 'ArrowRight') doodle.move('right');
   if (event.key === 'ArrowLeft') doodle.move('left');
 }
 
-document.onkeyup = (event) => {
+document.onkeyup = (event: KeyboardEvent) => {
   if (event.key === 'ArrowRight') doodle.isMove.right = false;
   if (event.key === 'ArrowLeft') doodle.isMove.left = false;
 }
 
 window.onresize = resizeHandl;
 
-function resizeHandl() {
+function resizeHandl(): void {
 
   if (window.innerWidth < gameFild.width + 30) gameFild.width = window.innerWidth - 30;
 
@@ -36,7 +39,7 @@ function resizeHandl() {
 
 }
 
-function gameOver() {
+function gameOver(): void {
 
   doodle.life--;
 
@@ -181,20 +184,22 @@ function doodleMove(): void {
 
 }
 
-function isTakeLife(): any {
+function isTakeLife(): void {
 
   if (doodle.platform === null) return;
 
   let life = gameFild.platforms[doodle.platform].isLife;
+  if (life === null) return;
   let lifeLeftSide = life.positionX + gameFild.platforms[doodle.platform].marginLeft;
   let lifeRightSide = life.positionX + gameFild.platforms[doodle.platform].marginLeft + life.width;
 
   if (
     doodle.positionX + doodle.with > lifeLeftSide &&
-    doodle.positionX < lifeRightSide &&
-    gameFild.platforms[doodle.platform].isLife.isVisible
-  ) return true;
-  else return false;
+    doodle.positionX < lifeRightSide
+  ) {
+    gameFild.platforms[doodle.platform].isLife = null;
+    doodle.life++;
+  }
 
 }
 
@@ -230,6 +235,8 @@ function App() {
 
   if (doodle.platform !== null) {
 
+    isTakeLife();
+
     if (doodle.isJupm.up || doodle.isJupm.down) {
       doodleJump();
     }
@@ -255,11 +262,6 @@ function App() {
         gameFild.isAnimation = false;
       }
 
-    }
-
-    if ( gameFild.platforms[doodle.platform].isLife !== null && isTakeLife() ) {
-      gameFild.platforms[doodle.platform].isLife.isVisible = false;
-      doodle.life++;
     }
 
     if (gameFild.platforms[doodle.platform].opacity <= 0) {
