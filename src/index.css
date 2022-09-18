@@ -67,6 +67,16 @@ h1, h2, h3, h4, h5, h6, p, ul, li {
   justify-content: space-between;
 }
 
+.title_life {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doodleLife svg {
+  margin: 5px;
+}
+
 .platform {
   height: 22px;
   border-radius: 15px;

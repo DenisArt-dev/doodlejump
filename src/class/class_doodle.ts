@@ -20,6 +20,7 @@ export default class Doodle {
     public positionOnPlatform: number = 0;
     public positionDown: number = this.positionY;
     public lastPlatform: number | null = null;
+    public life: number = 3;
 
     public remove() {
 
